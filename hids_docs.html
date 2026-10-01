@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AUTOENCODER-HIDS — Project Documentation</title>
+<style>
+  :root {
+    --bg-app:       #0A0E1A;
+    --bg-panel:     #0F1526;
+    --bg-surface:   #161D30;
+    --bg-hover:     #1C2540;
+    --border:       #1E2D4A;
+    --border-lt:    #263552;
+    --text-pri:     #E8EAF0;
+    --text-sec:     #8B9CC8;
+    --text-dim:     #4A5578;
+    --cyan:         #00D4FF;
+    --cyan-lt:      #66E8FF;
+    --cyan-dim:     #003D4D;
+    --violet:       #7B61FF;
+    --violet-dim:   #1E1A3D;
+    --green:        #00FF88;
+    --green-dim:    #00331A;
+    --amber:        #FFB020;
+    --amber-dim:    #332200;
+    --red:          #FF3366;
+    --red-dim:      #200010;
+    --font-mono:    'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+    --font-ui:      'Inter', 'Segoe UI', system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-app);
+    color: var(--text-pri);
+    font-family: var(--font-ui);
+    font-size: 18px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── Top nav ── */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--cyan-dim);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 0 32px;
+    height: 52px;
+  }
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .topbar-logo {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.5px;
+  }
+  .topbar-sep { color: var(--border-lt); }
+  .topbar-sub {
+    font-size: 14px;
+    color: var(--text-sec);
+    letter-spacing: 0.8px;
+  }
+  .topbar-nav {
+    margin-left: auto;
+    display: flex;
+    gap: 4px;
+  }
+  .topbar-nav a {
+    text-decoration: none;
+    color: var(--text-sec);
+    font-size: 14px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .topbar-nav a:hover {
+    color: var(--cyan);
+    border-color: var(--cyan-dim);
+  }
+  .badge-version {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: calc(100vh - 52px); }
+
+  /* ── Sidebar ── */
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 52px;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+  }
+  .sidebar-section {
+    margin-bottom: 20px;
+  }
+  .sidebar-label {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    padding: 0 20px 8px;
+    display: block;
+  }
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 20px;
+    color: var(--text-sec);
+    text-decoration: none;
+    font-size: 16px;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .sidebar-link:hover,
+  .sidebar-link.active {
+    color: var(--cyan);
+    background: var(--cyan-dim);
+    border-left-color: var(--cyan);
+  }
+  .sidebar-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border-lt);
+    flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .sidebar-link:hover .sidebar-dot,
+  .sidebar-link.active .sidebar-dot { background: var(--cyan); }
+
+  /* ── Main content ── */
+  .main {
+    flex: 1;
+    min-width: 0;
+    padding: 48px 64px 80px;
+    max-width: 960px;
+  }
+
+  /* ── Section anchors ── */
+  section { margin-bottom: 64px; scroll-margin-top: 72px; }
+
+  /* ── Hero ── */
+  .hero {
+    border: 1px solid var(--border-lt);
+    border-radius: 12px;
+    background: var(--bg-panel);
+    padding: 40px 44px;
+    margin-bottom: 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--cyan-dim) 0%, transparent 50%, var(--violet-dim) 100%);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-pri);
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: var(--cyan); }
+  .hero-desc {
+    color: var(--text-sec);
+    font-size: 14px;
+    max-width: 560px;
+    margin-bottom: 28px;
+    line-height: 1.75;
+  }
+  .hero-chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid;
+  }
+  .chip-cyan   { color: var(--cyan);   background: var(--cyan-dim);   border-color: var(--cyan); }
+  .chip-violet { color: var(--violet); background: var(--violet-dim); border-color: var(--violet); }
+  .chip-green  { color: var(--green);  background: var(--green-dim);  border-color: var(--green); }
+  .chip-amber  { color: var(--amber);  background: var(--amber-dim);  border-color: var(--amber); }
+
+  /* ── Section headings ── */
+  .section-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-pri);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan-lt);
+    margin: 28px 0 10px;
+  }
+  p {
+    color: var(--text-sec);
+    margin-bottom: 14px;
+    line-height: 1.75;
+  }
+
+  /* ── Cards grid ── */
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+  .card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 22px;
+  }
+  .card-top {
+    width: 3px;
+    height: 3px;
+    border-radius: 2px;
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-pri);
+    margin-bottom: 6px;
+  }
+  .card-body { font-size: 12px; color: var(--text-sec); line-height: 1.65; }
+
+  /* ── Architecture diagram ── */
+  .arch-diagram {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    margin: 20px 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--text-sec);
+    overflow-x: auto;
+  }
+  .arch-diagram .c { color: var(--cyan); }
+  .arch-diagram .v { color: var(--violet); }
+  .arch-diagram .g { color: var(--green); }
+  .arch-diagram .a { color: var(--amber); }
+  .arch-diagram .d { color: var(--text-dim); }
+
+  /* ── Feature table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 12px;
+  }
+  th {
+    text-align: left;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-sec);
+    background: var(--bg-surface);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--cyan-dim);
+    border-top: 1px solid var(--border);
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-sec);
+    vertical-align: top;
+  }
+  td:first-child {
+    font-family: var(--font-mono);
+    color: var(--cyan-lt);
+    white-space: nowrap;
+  }
+  tr:hover td { background: var(--bg-hover); }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-lt);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin: 14px 0;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--text-sec);
+  }
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    color: var(--cyan-lt);
+  }
+  .kw { color: var(--violet); }
+  .val { color: var(--green); }
+  .com { color: var(--text-dim); }
+  .str { color: var(--amber); }
+  .cmd { color: var(--cyan); }
+
+  /* ── Step list ── */
+  .steps { list-style: none; margin: 18px 0; }
+  .steps li {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  .step-num {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .step-content { flex: 1; }
+  .step-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-pri);
+    margin-bottom: 4px;
+  }
+  .step-body { font-size: 12px; color: var(--text-sec); }
+
+  /* ── Pages grid ── */
+  .pages-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+  .page-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .page-card-top {
+    height: 3px;
+  }
+  .page-card-body { padding: 16px 18px; }
+  .page-card-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+  }
+  .page-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-pri);
+    margin-bottom: 6px;
+  }
+  .page-card-desc { font-size: 12px; color: var(--text-sec); line-height: 1.6; }
+  .page-card-features {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .feat-pill {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-lt);
+    color: var(--text-dim);
+  }
+
+  /* ── Environment vars table ── */
+  .env-block {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .env-header {
+    padding: 8px 16px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.8px;
+  }
+
+  /* ── Callout ── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 18px 0;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    border-left: 3px solid;
+    background: var(--bg-panel);
+  }
+  .callout-warn  { border-color: var(--amber); }
+  .callout-info  { border-color: var(--cyan); }
+  .callout-tip   { border-color: var(--green); }
+  .callout-icon  { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .callout-text  { font-size: 12px; color: var(--text-sec); line-height: 1.65; }
+  .callout-text strong { color: var(--text-pri); font-weight: 700; }
+
+  /* ── Volume grid ── */
+  .volume-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .vol-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .vol-name {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--cyan-lt);
+    margin-bottom: 4px;
+  }
+  .vol-path {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .vol-desc { font-size: 11px; color: var(--text-sec); }
+
+  /* ── Profile table ── */
+  .profile-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 8px;
+    align-items: flex-start;
+  }
+  .profile-key {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--cyan-lt);
+    min-width: 90px;
+    padding-top: 2px;
+  }
+  .profile-val { font-size: 12px; color: var(--text-sec); }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 64px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+  }
+  footer span + span::before { content: '·'; margin-right: 24px; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg-surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border-lt); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
+</style>
+</head>
+<body>
+
+<!-- ── TOP NAR ── -->
+<header class="topbar">
+  <a class="topbar-brand" href="#overview">
+    <span class="topbar-logo">⬡ AUTOENCODER-HIDS</span>
+    <span class="topbar-sep">·</span>
+    <span class="topbar-sub">SENTINEL CONSOLE</span>
+  </a>
+  <span class="badge-version">v2.0</span>
+  <nav class="topbar-nav">
+    <a href="#overview">Overview</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#pages">Pages</a>
+    <a href="#docker">Docker</a>
+    <a href="#features">Features</a>
+    <a href="#quickstart">Quickstart</a>
+  </nav>
+</header>
+
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <span class="sidebar-label">Getting Started</span>
+      <a href="#overview"    class="sidebar-link"><span class="sidebar-dot"></span>Overview</a>
+      <a href="#quickstart"  class="sidebar-link"><span class="sidebar-dot"></span>Quickstart</a>
+      <a href="#prerequisites" class="sidebar-link"><span class="sidebar-dot"></span>Prerequisites</a>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">System Design</span>
+      <a href="#architecture" class="sidebar-link"><span class="sidebar-dot"></span>Architecture</a>
+      <a href="#model"        class="sidebar-link"><span class="sidebar-dot"></span>Autoencoder Model</a>
+      <a href="#pipeline"     class="sidebar-link"><span class="sidebar-dot"></span>Data Pipeline</a>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Dashboard</span>
+      <a href="#pages"       class="sidebar-link"><span class="sidebar-dot"></span>Pages</a>
+      <a href="#theme"       class="sidebar-link"><span class="sidebar-dot"></span>Design System</a>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Deployment</span>
+      <a href="#docker"      class="sidebar-link"><span class="sidebar-dot"></span>Docker Setup</a>
+      <a href="#volumes"     class="sidebar-link"><span class="sidebar-dot"></span>Volumes</a>
+      <a href="#env"         class="sidebar-link"><span class="sidebar-dot"></span>Environment</a>
+      <a href="#profiles"    class="sidebar-link"><span class="sidebar-dot"></span>Compose Profiles</a>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Reference</span>
+      <a href="#features"    class="sidebar-link"><span class="sidebar-dot"></span>Feature Vector</a>
+      <a href="#api"         class="sidebar-link"><span class="sidebar-dot"></span>API Endpoints</a>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <p class="hero-eyebrow">NeumaOps · UTAMU Final Year Project · 2026</p>
+      <h1><span>Autoencoder-HIDS</span> Sentinel Console</h1>
+      <p class="hero-desc">
+        A host-based network intrusion detection system powered by a symmetric autoencoder.
+        Captures live packets, extracts 22 behavioral flow features, reconstructs them through
+        a trained neural network, and flags anomalies when reconstruction error exceeds a
+        calibrated threshold — all surfaced in a real-time PySide6 dashboard.
+      </p>
+      <div class="hero-chips">
+        <span class="chip chip-cyan">Python 3.12</span>
+        <span class="chip chip-violet">PySide6 · Qt6</span>
+        <span class="chip chip-cyan">FastAPI · SQLite</span>
+        <span class="chip chip-green">Keras · TensorFlow</span>
+        <span class="chip chip-amber">Docker Compose</span>
+        <span class="chip chip-violet">Scapy · psutil</span>
+      </div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <section id="overview">
+      <p class="section-eyebrow">01 — Overview</p>
+      <h2>What it does</h2>
+      <p>
+        The HIDS Sentinel Console monitors network traffic on a chosen interface, extracts per-flow
+        behavioral statistics, and runs them through a trained autoencoder to detect patterns that
+        deviate from a learned baseline of normal activity. High reconstruction error = potential intrusion.
+      </p>
+      <p>
+        The system is split into two Docker containers: a <strong style="color:var(--cyan)">FastAPI backend</strong>
+        that handles live capture, model inference, and database persistence, and a
+        <strong style="color:var(--violet)">PySide6 dashboard</strong> that renders alerts, charts,
+        and forensic detail in real time over a shared SQLite volume.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <div class="card-title" style="color:var(--cyan)">⬡ Real-Time Detection</div>
+          <p class="card-body">
+            Live packet capture via Scapy. Flow features extracted per connection.
+            Autoencoder inference on every captured flow with sub-second latency.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--violet)">⬡ Forensic Inspection</div>
+          <p class="card-body">
+            Every alert persists to SQLite with full 22-feature breakdown, destination IP,
+            protocol, encryption status, and analyst feedback fields.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--green)">⬡ Feedback Retraining</div>
+          <p class="card-body">
+            Analysts mark false positives directly in the dashboard. Accumulated flags
+            feed a retraining pipeline that recalibrates the threshold automatically.
+          </p>
+        </div>
+        <div class="card">
+          <div class="card-title" style="color:var(--amber)">⬡ Compliance Reports</div>
+          <p class="card-body">
+            One-click generation of structured forensic reports covering threat summary,
+            per-incident breakdown, and top anomalous flows — exportable as plain text.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ARCHITECTURE -->
+    <section id="architecture">
+      <p class="section-eyebrow">02 — System Design</p>
+      <h2>Architecture</h2>
+      <p>
+        The system follows a two-container architecture sharing data over Docker named volumes.
+        The backend runs with <code>NET_RAW</code> and <code>NET_ADMIN</code> capabilities for raw
+        socket access; the dashboard mounts the host X11 socket for GUI rendering.
+      </p>
+
+      <div class="arch-diagram">
+<span class="d">┌─ Host Machine ─────────────────────────────────────────────────────────┐</span>
+<span class="d">│</span>                                                                        <span class="d">│</span>
+<span class="d">│</span>  <span class="c">┌─── hids_backend (port 9000) ──────────┐</span>  <span class="v">┌─── hids_dashboard ───────┐</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">│</span>  FastAPI · Uvicorn · 1 worker        <span class="c">│</span>  <span class="v">│</span>  PySide6 · Qt6 · XCB    <span class="v">│</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">│</span>  ├─ src/services/monitor_service.py  <span class="c">│</span>  <span class="v">│</span>  ├─ dashboard.py         <span class="v">│</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">│</span>  │    Scapy capture → feature ext.  <span class="c">│</span>  <span class="v">│</span>  ├─ pages/               <span class="v">│</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">│</span>  ├─ src/ml/autoencoder.py           <span class="c">│</span>  <span class="v">│</span>  └─ components/          <span class="v">│</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">│</span>  │    Keras inference + thresholding <span class="c">│</span>  <span class="v">│</span>                         <span class="v">│</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">│</span>  ├─ api/ (FastAPI routes)           <span class="c">│</span>  <span class="v">│</span>  HTTP → localhost:9000   <span class="v">│</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">│</span>  └─ src/database/ (SQLite CRUD)     <span class="c">│</span>  <span class="v">│</span>  Qt signals → UI update  <span class="v">│</span>  <span class="d">│</span>
+<span class="d">│</span>  <span class="c">└──────────────────────────────────────┘</span>  <span class="v">└──────────────────────────┘</span>  <span class="d">│</span>
+<span class="d">│</span>              <span class="d">│ hids_models   │ hids_db   │ hids_configs  │ /tmp/.X11-unix</span>  <span class="d">│</span>
+<span class="d">│</span>              <span class="d">└───────────────┴───────────┴───────────────┘</span>                  <span class="d">│</span>
+<span class="d">│</span>              <span class="g">  baseline_ae.keras  hids_forensics.db  threshold.yaml</span>         <span class="d">│</span>
+<span class="d">└────────────────────────────────────────────────────────────────────────────┘</span>
+      </div>
+
+      <h3 id="model">Autoencoder Model</h3>
+      <p>
+        A symmetric feed-forward autoencoder with the following architecture.
+        Trained on benign traffic; anomalies produce higher mean-squared reconstruction error (MSE).
+        The detection threshold τ is derived from the training MSE distribution.
+      </p>
+      <pre><span class="com"># Architecture: 22 → 16 → 8 → 4 → 8 → 16 → 22</span>
+Input  (22)  →  Dense(16, relu)  →  Dense(8, relu)  →  Dense(4, relu)
+                                                                ↓  <span class="com">bottleneck</span>
+Output (22)  ←  Dense(16, relu)  ←  Dense(8, relu)  ←  Dense(4, relu)
+
+Threshold τ:  MSE_baseline + k·σ   <span class="com">(calibrated in configs/threshold.yaml)</span>
+Scaler:       StandardScaler saved as models/scaler.pkl
+Weights:      models/baseline_ae.keras  v1.0.4</pre>
+
+      <h3 id="pipeline">Data Pipeline</h3>
+      <ul class="steps">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <div class="step-title">Packet Capture</div>
+            <p class="step-body">Scapy sniffs raw packets on the selected network interface with <code>NET_RAW</code>. Flows are grouped by 5-tuple: src_ip, dst_ip, src_port, dst_port, protocol.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <div class="step-title">Feature Extraction</div>
+            <p class="step-body">22 behavioral statistics are computed per flow — inter-arrival timing, packet length distribution, byte rates, burstiness, TTL diversity, and protocol flags. See <a href="#features">Feature Vector</a>.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <div class="step-title">Normalisation</div>
+            <p class="step-body">Features are scaled using the saved <code>scaler.pkl</code> (fitted on training data) before inference to match the training distribution.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <div class="step-title">Autoencoder Inference</div>
+            <p class="step-body">The 22-dimensional vector passes through the encoder→bottleneck→decoder. MSE between input and reconstruction is the anomaly score.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <div class="step-content">
+            <div class="step-title">Alert Routing</div>
+            <p class="step-body">If MSE &gt; τ, a new alert is written to SQLite and emitted as a Qt signal. The Sentinel Console updates in real time — no polling needed.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- PAGES -->
+    <section id="pages">
+      <p class="section-eyebrow">03 — Dashboard</p>
+      <h2>Application pages</h2>
+      <p>
+        The dashboard is a <code>QMainWindow</code> with a <code>QStackedWidget</code> and a persistent
+        navigation bar. Five pages are available; the console grid is the default view on startup.
+      </p>
+
+      <div class="pages-grid">
+        <div class="page-card">
+          <div class="page-card-top" style="background:var(--cyan)"></div>
+          <div class="page-card-body">
+            <p class="page-card-label" style="color:var(--cyan)">⬡ INDEX 0</p>
+            <div class="page-card-title">Console Grid</div>
+            <p class="page-card-desc">
+              Split-panel view: real-time alert feed on the left (55%) and forensic alert history on the right (45%).
+              Live signal chart plots reconstruction error over time. KPI cards show total alerts, threat rate, and
+              last-seen timestamp. Protocol and encryption badges on each row.
+            </p>
+            <div class="page-card-features">
+              <span class="feat-pill">LiveSignalChart</span>
+              <span class="feat-pill">MetricCard</span>
+              <span class="feat-pill">HIDStatusCard</span>
+              <span class="feat-pill">QTimer refresh</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-card">
+          <div class="page-card-top" style="background:var(--violet)"></div>
+          <div class="page-card-body">
+            <p class="page-card-label" style="color:var(--violet)">⬡ INDEX 1</p>
+            <div class="page-card-title">Packet Ingestion</div>
+            <p class="page-card-desc">
+              Network interface selector, live system telemetry (CPU, memory, per-interface byte rates),
+              and a 22-bar animated feature strip. Each bar eases to the latest flow value and breathes
+              sinusoidally when idle — colour-coded by feature group.
+            </p>
+            <div class="page-card-features">
+              <span class="feat-pill">psutil telemetry</span>
+              <span class="feat-pill">FeatureSignalBar</span>
+              <span class="feat-pill">QNetworkInterface</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-card">
+          <div class="page-card-top" style="background:var(--violet)"></div>
+          <div class="page-card-body">
+            <p class="page-card-label" style="color:var(--violet)">⬡ INDEX 2</p>
+            <div class="page-card-title">Model Analysis</div>
+            <p class="page-card-desc">
+              KPI cards show model accuracy, false-positive count, and threshold value.
+              Per-feature reconstruction error bar chart. Retraining pipeline: POSTs to
+              <code>POST /system/retrain</code> via QNetworkAccessManager with a direct
+              Keras fallback if the API is unreachable.
+            </p>
+            <div class="page-card-features">
+              <span class="feat-pill">Retrain pipeline</span>
+              <span class="feat-pill">QNetworkAccessManager</span>
+              <span class="feat-pill">FeedbackLoopService</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-card">
+          <div class="page-card-top" style="background:var(--amber)"></div>
+          <div class="page-card-body">
+            <p class="page-card-label" style="color:var(--amber)">⬡ INDEX 4</p>
+            <div class="page-card-title">Forensic Reports</div>
+            <p class="page-card-desc">
+              Summary KPI cards (total events, threat count, false positives, top anomaly score).
+              Generates a structured plain-text compliance report with per-incident breakdown,
+              true/false positive ratios, and top-10 anomalous flows. Exportable via
+              <code>QFileDialog</code>.
+            </p>
+            <div class="page-card-features">
+              <span class="feat-pill">Amber accent</span>
+              <span class="feat-pill">SQLite aggregation</span>
+              <span class="feat-pill">Text export</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-card" style="grid-column: span 2">
+          <div class="page-card-top" style="background:var(--cyan-lt)"></div>
+          <div class="page-card-body">
+            <p class="page-card-label" style="color:var(--cyan-lt)">⬡ INDEX 3</p>
+            <div class="page-card-title">Alert History — Forensic Inspector</div>
+            <p class="page-card-desc">
+              Filterable alert table with colour-coded verdict badges (ANOMALY / NORMAL) and destination IP, protocol,
+              encryption columns. Click any row to expand a full forensic panel: 22-feature breakdown in colour-grouped
+              sections (timing · volume · rate · burstiness · session · protocol), reconstruction error score, raw JSON,
+              and an analyst feedback form (True Positive / False Positive + free-text comment). False positive
+              submissions are written to SQLite and feed the retraining pipeline.
+            </p>
+            <div class="page-card-features">
+              <span class="feat-pill">QSplitter inspector</span>
+              <span class="feat-pill">Feature group colours</span>
+              <span class="feat-pill">Analyst feedback</span>
+              <span class="feat-pill">512-char comment cap</span>
+              <span class="feat-pill">update_feedback() CRUD</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="page-card" style="grid-column: span 2">
+          <div class="page-card-top" style="background:var(--cyan-dim); border-top: 1px solid var(--cyan)"></div>
+          <div class="page-card-body">
+            <p class="page-card-label" style="color:var(--text-dim)">⬡ INDEX 3 (settings)</p>
+            <div class="page-card-title">Settings</div>
+            <p class="page-card-desc">
+              Theme selector (dark / light), network interface dropdown populated from
+              <code>QNetworkInterface.allInterfaces()</code>, detection threshold slider with
+              live percentage readout, and a 22-chip feature reference grid. Saves emit
+              the <code>interface_changed</code> signal which restarts the capture service
+              on the selected interface.
+            </p>
+            <div class="page-card-features">
+              <span class="feat-pill">Theme callback</span>
+              <span class="feat-pill">Threshold slider</span>
+              <span class="feat-pill">Feature chip grid</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3 id="theme">Design system</h3>
+      <p>
+        All visual constants live in <code>app/theme.py</code>. Colours, type sizes, and QSS
+        strings are defined once and imported across all pages and components.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>Token</th><th>Value</th><th>Role</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>C_BG_APP</td><td>#0A0E1A</td><td>Deepest background — window root</td></tr>
+          <tr><td>C_BG_PANEL</td><td>#0F1526</td><td>Card and panel surfaces</td></tr>
+          <tr><td>C_BG_SURFACE</td><td>#161D30</td><td>Inner surfaces, chip backgrounds</td></tr>
+          <tr><td>C_ACCENT</td><td>#00D4FF</td><td>Primary electric cyan — nav, borders, links</td></tr>
+          <tr><td>C_VIOLET</td><td>#7B61FF</td><td>Secondary accent — analysis and ingestion pages</td></tr>
+          <tr><td>C_GREEN</td><td>#00FF88</td><td>Success / normal verdict indicators</td></tr>
+          <tr><td>C_AMBER</td><td>#FFB020</td><td>Warning / reports page accent</td></tr>
+          <tr><td>C_RED</td><td>#FF3366</td><td>Threat / anomaly verdict indicators</td></tr>
+          <tr><td>FONT_MONO</td><td>JetBrains Mono</td><td>All data, metrics, feature values</td></tr>
+          <tr><td>FONT_UI</td><td>Inter / system-ui</td><td>Labels, descriptions, prose</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- DOCKER -->
+    <section id="docker">
+      <p class="section-eyebrow">04 — Deployment</p>
+      <h2>Docker setup</h2>
+      <p>
+        The project ships two Dockerfiles and a Compose file. All are built from
+        <code>python:3.12-slim</code>. Runtime Python dependencies are loaded from the host
+        virtualenv via a bind-mount (<code>HOST_SITE_PACKAGES</code>) rather than being
+        re-installed in the image — this dramatically reduces rebuild time during development.
+      </p>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠</span>
+        <p class="callout-text">
+          <strong>Root required.</strong> Both containers run as root for Scapy raw socket access.
+          The <code>cap_add: [NET_RAW, NET_ADMIN]</code> entries are mandatory. The <code>hids</code>
+          system user is created but not used for the running process — it exists so file ownership
+          inside volumes is correct.
+        </p>
+      </div>
+
+      <h3>Dockerfile.backend</h3>
+      <p>
+        Installs <code>libpcap</code>, <code>libgomp1</code>, and <code>curl</code> (for the
+        healthcheck). Copies <code>api/</code>, <code>src/</code>, and <code>docker/entrypoint.py</code>.
+        Exposes port <code>9000</code>. Starts Uvicorn via <code>python -m entrypoint</code>.
+      </p>
+      <pre><span class="com"># Healthcheck — backend is ready when /ready returns 200</span>
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -sf http://localhost:9000/ready || exit 1</pre>
+
+      <h3>Dockerfile.dashboard</h3>
+      <p>
+        Installs the full X11/XCB/OpenGL dependency set for Qt6 rendering inside Docker,
+        plus <code>fonts-jetbrains-mono</code> and <code>libpcap-dev</code>. Copies
+        <code>api/</code>, <code>src/</code>, and the entire <code>app/</code> directory.
+        Starts with <code>python app/dashboard.py</code>.
+      </p>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">ℹ</span>
+        <p class="callout-text">
+          <strong>X11 forwarding.</strong> The dashboard container requires <code>DISPLAY</code>
+          set to a reachable X server (default <code>:0</code>) and the <code>/tmp/.X11-unix</code>
+          socket mounted. The launch script runs <code>xhost +local:docker</code> automatically.
+          On headless servers, use a virtual framebuffer: <code>Xvfb :99 &amp; export DISPLAY=:99</code>.
+        </p>
+      </div>
+
+      <h3 id="profiles">Compose profiles</h3>
+      <table>
+        <thead><tr><th>Profile</th><th>Services started</th><th>Use when</th></tr></thead>
+        <tbody>
+          <tr><td>gui</td><td>backend + dashboard</td><td>Normal operation on a workstation with a display</td></tr>
+          <tr><td>backend</td><td>backend only</td><td>Headless / API-only deployment</td></tr>
+          <tr><td>dev</td><td>backend_dev + dashboard_dev</td><td>Local development — live source mounts, faster healthcheck</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="volumes">Named volumes</h3>
+      <div class="volume-grid">
+        <div class="vol-card">
+          <div class="vol-name">hids_models</div>
+          <div class="vol-path">/app/models/</div>
+          <p class="vol-desc">Keras model weights, scaler pickle, and optional threshold.yaml. Both containers mount read-only.</p>
+        </div>
+        <div class="vol-card">
+          <div class="vol-name">hids_db</div>
+          <div class="vol-path">/app/db/</div>
+          <p class="vol-desc">SQLite database file (hids_forensics.db). Shared read-write between backend and dashboard.</p>
+        </div>
+        <div class="vol-card">
+          <div class="vol-name">hids_configs</div>
+          <div class="vol-path">/app/configs/</div>
+          <p class="vol-desc">threshold.yaml with calibrated τ value. Generated by docker/generate_threshold.py if absent.</p>
+        </div>
+        <div class="vol-card">
+          <div class="vol-name">hids_logs</div>
+          <div class="vol-path">/app/logs/</div>
+          <p class="vol-desc">Backend service logs. Not mounted by dashboard container.</p>
+        </div>
+      </div>
+
+      <h3 id="env">Environment variables</h3>
+      <div class="env-block">
+        <div class="env-header">Backend (hids_backend)</div>
+        <table>
+          <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>DATABASE_URL</td><td>sqlite:////app/db/hids_forensics.db</td><td>SQLAlchemy connection string</td></tr>
+            <tr><td>HIDS_MODEL_PATH</td><td>/app/models/baseline_ae.keras</td><td>Path to Keras autoencoder weights</td></tr>
+            <tr><td>HIDS_SCALER_PATH</td><td>/app/models/scaler.pkl</td><td>Path to fitted StandardScaler</td></tr>
+            <tr><td>HIDS_THRESHOLD_CONFIG</td><td>/app/configs/threshold.yaml</td><td>YAML file containing calibrated τ</td></tr>
+            <tr><td>API_PORT</td><td>9000</td><td>Uvicorn listen port</td></tr>
+            <tr><td>LOG_LEVEL</td><td>INFO</td><td>Python logging level</td></tr>
+            <tr><td>HOST_SITE_PACKAGES</td><td>(required)</td><td>Host venv site-packages path — set in docker/.env</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="env-block" style="margin-top:10px">
+        <div class="env-header">Dashboard (hids_dashboard)</div>
+        <table>
+          <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>HIDS_API_URL</td><td>http://127.0.0.1:9000</td><td>Backend URL for retraining requests</td></tr>
+            <tr><td>GUI_THEME</td><td>dark</td><td>Colour theme — dark or light</td></tr>
+            <tr><td>DISPLAY</td><td>:0</td><td>X11 display target</td></tr>
+            <tr><td>QT_QPA_PLATFORM</td><td>xcb</td><td>Qt platform plugin — xcb for X11</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- QUICKSTART -->
+    <section id="quickstart">
+      <p class="section-eyebrow">05 — Quickstart</p>
+      <h2>Getting started</h2>
+
+      <h3 id="prerequisites">Prerequisites</h3>
+      <div class="profile-row"><span class="profile-key">OS</span><span class="profile-val">Linux (Ubuntu 22.04+ recommended); X11 display for the dashboard</span></div>
+      <div class="profile-row"><span class="profile-key">Docker</span><span class="profile-val">20.10+ with Compose v2 plugin</span></div>
+      <div class="profile-row"><span class="profile-key">Python</span><span class="profile-val">3.12 — for venv + generate_threshold.py</span></div>
+      <div class="profile-row"><span class="profile-key">Model files</span><span class="profile-val">models/baseline_ae.keras and models/scaler.pkl must exist before first launch</span></div>
+
+      <ul class="steps" style="margin-top:24px">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <div class="step-title">Create and activate the virtualenv</div>
+            <pre><span class="cmd">python3.12 -m venv env
+source env/bin/activate
+pip install -r requirements.txt</span></pre>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <div class="step-title">Set HOST_SITE_PACKAGES in docker/.env</div>
+            <pre><span class="com"># Find your venv site-packages path:</span>
+<span class="cmd">python3 -c "import site; print(site.getsitepackages()[0])"</span>
+<span class="com"># Paste the output into docker/.env:</span>
+<span class="val">HOST_SITE_PACKAGES=/path/to/env/lib/python3.12/site-packages</span></pre>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <div class="step-title">Place trained model files</div>
+            <pre>models/
+├── baseline_ae.keras   <span class="com"># trained autoencoder weights</span>
+└── scaler.pkl          <span class="com"># fitted StandardScaler</span></pre>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <div class="step-title">Launch with run.sh</div>
+            <pre><span class="cmd">chmod +x docker/run.sh
+./docker/run.sh</span>
+<span class="com"># The script will:
+#   1. Generate threshold.yaml if missing
+#   2. Create docker/.env from .env.example
+#   3. Load model files into Docker volumes
+#   4. Run xhost +local:docker
+#   5. docker-compose up --profile gui --build</span></pre>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <div class="step-content">
+            <div class="step-title">Backend only (headless)</div>
+            <pre><span class="cmd">cd docker && docker-compose --env-file .env --profile backend up --build</span></pre>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">6</span>
+          <div class="step-content">
+            <div class="step-title">Development mode (live source mounts)</div>
+            <pre><span class="cmd">cd docker && docker-compose --env-file .env --profile dev up --build</span></pre>
+            <p class="step-body">Both containers mount the project root at <code>/app</code> — edits to <code>src/</code> or <code>app/</code> are live without rebuilding.</p>
+          </div>
+        </li>
+      </ul>
+
+      <div class="callout callout-tip">
+        <span class="callout-icon">✓</span>
+        <p class="callout-text">
+          <strong>Healthcheck.</strong> The dashboard container will not start until the backend responds
+          200 on <code>GET /ready</code>. If the backend is slow to start (first run with no model in the
+          volume), increase <code>start_period</code> in <code>docker-compose.yml</code> or wait for
+          the healthcheck to pass before the dashboard container launches.
+        </p>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <p class="section-eyebrow">06 — Reference</p>
+      <h2>Feature vector (22 dimensions)</h2>
+      <p>
+        Features are extracted per TCP/UDP flow from captured packets and grouped into six
+        semantic categories. The same 22-element order is used throughout: model input/output,
+        the forensic inspector, the feature strip, and the per-feature error chart.
+      </p>
+
+      <table>
+        <thead>
+          <tr><th>#</th><th>Feature</th><th>Group</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>0</td><td>flow_duration</td><td>Timing</td><td>Total duration of the flow in seconds</td></tr>
+          <tr><td>1</td><td>fwd_iat_mean</td><td>Timing</td><td>Mean inter-arrival time of forward packets</td></tr>
+          <tr><td>2</td><td>fwd_iat_std</td><td>Timing</td><td>Standard deviation of inter-arrival times</td></tr>
+          <tr><td>3</td><td>fwd_iat_min</td><td>Timing</td><td>Minimum inter-arrival time</td></tr>
+          <tr><td>4</td><td>fwd_iat_max</td><td>Timing</td><td>Maximum inter-arrival time</td></tr>
+          <tr><td>5</td><td>fwd_iat_total</td><td>Timing</td><td>Sum of all inter-arrival times</td></tr>
+          <tr><td>6</td><td>fwd_pkt_len_mean</td><td>Volume</td><td>Mean forward packet length in bytes</td></tr>
+          <tr><td>7</td><td>fwd_pkt_len_std</td><td>Volume</td><td>Std deviation of forward packet lengths</td></tr>
+          <tr><td>8</td><td>fwd_pkt_len_min</td><td>Volume</td><td>Minimum packet length in the flow</td></tr>
+          <tr><td>9</td><td>fwd_pkt_len_max</td><td>Volume</td><td>Maximum packet length in the flow</td></tr>
+          <tr><td>10</td><td>total_fwd_bytes</td><td>Volume</td><td>Total bytes transferred in forward direction</td></tr>
+          <tr><td>11</td><td>flow_pkts_per_sec</td><td>Rate</td><td>Packets per second over flow duration</td></tr>
+          <tr><td>12</td><td>flow_bytes_per_sec</td><td>Rate</td><td>Bytes per second over flow duration</td></tr>
+          <tr><td>13</td><td>pkt_len_variance</td><td>Burstiness</td><td>Variance in packet lengths — measures irregularity</td></tr>
+          <tr><td>14</td><td>burst_ratio</td><td>Burstiness</td><td>Proportion of time the flow was in burst mode</td></tr>
+          <tr><td>15</td><td>active_time_ratio</td><td>Burstiness</td><td>Fraction of flow duration with active traffic</td></tr>
+          <tr><td>16</td><td>pkt_count</td><td>Session</td><td>Total packet count for the flow</td></tr>
+          <tr><td>17</td><td>unique_ttl_count</td><td>Session</td><td>Number of distinct TTL values observed</td></tr>
+          <tr><td>18</td><td>ttl_mean</td><td>Session</td><td>Mean TTL across all packets in the flow</td></tr>
+          <tr><td>19</td><td>tcp_flag_ratio</td><td>Protocol</td><td>Ratio of control flag packets (SYN/FIN/RST)</td></tr>
+          <tr><td>20</td><td>has_udp</td><td>Protocol</td><td>Binary indicator — 1 if flow contains UDP packets</td></tr>
+          <tr><td>21</td><td>has_tcp</td><td>Protocol</td><td>Binary indicator — 1 if flow contains TCP packets</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="api">API endpoints (backend port 9000)</h3>
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>GET</td><td>/ready</td><td>Health probe — returns 200 when model is loaded and DB is accessible</td></tr>
+          <tr><td>POST</td><td>/capture/start</td><td>Begin packet capture on the selected interface</td></tr>
+          <tr><td>POST</td><td>/capture/stop</td><td>Stop capture and flush the current flow buffer</td></tr>
+          <tr><td>GET</td><td>/alerts</td><td>Paginated list of stored alerts from the database</td></tr>
+          <tr><td>POST</td><td>/system/retrain</td><td>Trigger retraining on analyst-flagged false positives</td></tr>
+          <tr><td>GET</td><td>/system/threshold</td><td>Return current detection threshold τ</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>AUTOENCODER-HIDS Sentinel Console v2.0</span>
+  <span>NeumaOps · UTAMU Final Year Project · 2026</span>
+  <span>Python 3.12 · PySide6 · FastAPI · SQLite · Keras</span>
+</footer>
+
+<script>
+  const links = document.querySelectorAll('.sidebar-link');
+  const sections = document.querySelectorAll('section[id], .hero');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const id = entry.target.id || 'overview';
+        const active = document.querySelector(`.sidebar-link[href="#${id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+
+  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
