@@ -1,670 +1,856 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF 8">
-<meta name="viewport" content="width=device width, initial scale 1.0">
-<title>Autoencoder HIDS Sentinel Console Documentation</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-:root {
-  --bg: #06111f;
-  --panel: #0b1b2d;
-  --panel2: #0e243b;
-  --border: #183a5a;
-  --blue: #2563eb;
-  --blue2: #38bdf8;
-  --text: #e6f1ff;
-  --muted: #9fb3c8;
-  --green: #34d399;
-  --amber: #fbbf24;
-  --shadow: 0 18px 45px rgba(0, 0, 0, .28);
-}
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body {
-  margin: 0;
-  background:
-    radial-gradient(circle at 15% 0%, rgba(37, 99, 235, .18), transparent 32rem),
-    radial-gradient(circle at 90% 10%, rgba(56, 189, 248, .10), transparent 28rem),
-    var(--bg);
-  color: var(--text);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  line-height: 1.7;
-}
-header {
-  background: linear-gradient(135deg, #071a31 0%, #0b2d52 55%, #103f6d 100%);
-  border-bottom: 1px solid #1e4d76;
-  padding: 72px 24px 62px;
-  box-shadow: var(--shadow);
-}
-.hero {
-  max-width: 1120px;
-  margin: auto;
-}
-.badge {
-  display: inline-block;
-  padding: 7px 13px;
-  border: 1px solid rgba(56,189,248,.35);
-  border-radius: 999px;
-  color: #bdeaff;
-  background: rgba(3, 20, 38, .48);
-  font-size: .82rem;
-  font-weight: 700;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
-h1 {
-  margin: 18px 0 10px;
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  line-height: 1.08;
-  letter-spacing: -.04em;
-}
-.hero p {
-  max-width: 820px;
-  margin: 0;
-  color: #c7d8ea;
-  font-size: 1.08rem;
-}
-main {
-  max-width: 1120px;
-  margin: 38px auto 80px;
-  padding: 0 24px;
-}
-nav {
-  background: rgba(11, 27, 45, .9);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 20px 22px;
-  margin-bottom: 30px;
-  box-shadow: var(--shadow);
-}
-nav strong {
-  display: block;
-  margin-bottom: 10px;
-  color: #fff;
-}
-nav a {
-  color: #8edcff;
-  text-decoration: none;
-  margin-right: 18px;
-  white-space: nowrap;
-}
-nav a:hover { color: #fff; text-decoration: underline; }
-section {
-  background: linear-gradient(180deg, rgba(11,27,45,.98), rgba(8,22,37,.98));
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 30px;
-  margin: 24px 0;
-  box-shadow: var(--shadow);
-}
-h2 {
-  margin-top: 0;
-  color: #dff4ff;
-  font-size: 1.7rem;
-  border-left: 4px solid var(--blue2);
-  padding-left: 13px;
-}
-h3 {
-  color: #8edcff;
-  margin-top: 28px;
-}
-p, li { color: #c3d2e2; }
-li { margin: 7px 0; }
-strong { color: #edf7ff; }
-pre {
-  overflow-x: auto;
-  background: #030b14;
-  border: 1px solid #173a5c;
-  border-radius: 12px;
-  padding: 18px;
-  color: #bde8ff;
-  box-shadow: inset 0 0 24px rgba(0,0,0,.2);
-}
-code {
-  color: #8edcff;
-  background: #07192a;
-  padding: 2px 6px;
-  border-radius: 5px;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 18px 0;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-th {
-  text-align: left;
-  background: #0d3151;
-  color: #eaf7ff;
-  padding: 13px;
-  border-bottom: 1px solid #24557c;
-}
-td {
-  padding: 13px;
-  border-bottom: 1px solid #17334e;
-  color: #bfd0e2;
-  vertical-align: top;
-}
-tr:nth-child(even) td { background: rgba(18, 50, 78, .25); }
-.callout {
-  border-left: 4px solid var(--blue2);
-  background: rgba(15, 54, 86, .35);
-  padding: 16px 18px;
-  border-radius: 10px;
-  margin: 18px 0;
-}
-.success {
-  border-left-color: var(--green);
-  background: rgba(16, 70, 58, .24);
-}
-.warning {
-  border-left-color: var(--amber);
-  background: rgba(83, 63, 17, .20);
-}
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin: 20px 0;
-}
-.card {
-  background: linear-gradient(145deg, #0e2842, #0a1c30);
-  border: 1px solid #1b466b;
-  border-radius: 14px;
-  padding: 20px;
-}
-.card h3 { margin-top: 0; }
-footer {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 25px 24px 60px;
-  color: #718aa3;
-  text-align: center;
-  font-size: .9rem;
-}
-@media (max-width: 700px) {
-  header { padding: 48px 18px; }
-  main { padding: 0 14px; }
-  section { padding: 22px 18px; }
-  nav a { display: inline-block; margin-bottom: 7px; }
-  table { display: block; overflow-x: auto; }
-}
-@media print {
-  body { background: #fff; color: #111; }
-  header { background: #0b2d52; box-shadow: none; }
-  section, nav { box-shadow: none; break-inside: avoid; }
-}
-</style>
+    <title>Autoencoder HIDS Sentinel Console Documentation</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.7;
+            background: #050d18;
+            color: #c9d8e8;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1100px;
+            margin: auto;
+            padding: 40px 0 70px;
+        }
+
+        .hero {
+            background: linear-gradient(
+                135deg,
+                #071a30,
+                #0a2c4d,
+                #061525
+            );
+
+            border: 1px solid #174b73;
+            border-radius: 18px;
+            padding: 55px 45px;
+            margin-bottom: 35px;
+
+            box-shadow:
+                0 20px 50px rgba(0, 0, 0, 0.45),
+                inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .hero h1 {
+            margin: 0;
+            color: #ffffff;
+            font-size: 40px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            max-width: 800px;
+            margin-top: 20px;
+            color: #a9c3dc;
+            font-size: 17px;
+        }
+
+        .badge-container {
+            margin-top: 25px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 13px;
+            margin: 4px;
+            border: 1px solid #216795;
+            border-radius: 20px;
+            background: #0a2844;
+            color: #62c2ff;
+            font-size: 13px;
+        }
+
+        .navigation {
+            background: #081827;
+            border: 1px solid #123b5e;
+            border-radius: 12px;
+            padding: 22px 25px;
+            margin-bottom: 40px;
+        }
+
+        .navigation h3 {
+            margin-top: 0;
+            color: #ffffff;
+        }
+
+        .navigation a {
+            color: #60bfff;
+            text-decoration: none;
+        }
+
+        .navigation a:hover {
+            color: #ffffff;
+        }
+
+        .navigation ul {
+            margin-bottom: 0;
+        }
+
+        h2 {
+            color: #ffffff;
+            font-size: 28px;
+            margin-top: 50px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #164d78;
+        }
+
+        h3 {
+            color: #55b9f7;
+            font-size: 21px;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #c3d2e2;
+        }
+
+        ul,
+        ol {
+            background: #081827;
+            border: 1px solid #123b5e;
+            border-radius: 10px;
+            padding: 22px 25px 22px 45px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            color: #c7d6e5;
+        }
+
+        li::marker {
+            color: #3fa8e8;
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        .card {
+            background: #081827;
+            border: 1px solid #123b5e;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+        }
+
+        .info {
+            background: #09243b;
+            border-left: 5px solid #2497dc;
+            border-radius: 8px;
+            padding: 18px 22px;
+            margin: 25px 0;
+        }
+
+        .info p {
+            margin: 0;
+        }
+
+        .warning {
+            background: #211d0d;
+            border-left: 5px solid #c79b31;
+            border-radius: 8px;
+            padding: 18px 22px;
+            margin: 25px 0;
+        }
+
+        .warning p {
+            margin: 0;
+            color: #e4d49e;
+        }
+
+        pre {
+            background: #020912;
+            color: #74d0ff;
+            border: 1px solid #174c75;
+            border-left: 5px solid #1889d0;
+            border-radius: 8px;
+            padding: 18px 20px;
+            overflow-x: auto;
+            font-family: "Courier New", monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            box-shadow: inset 0 0 25px rgba(0, 80, 140, 0.12);
+        }
+
+        code {
+            background: #0b2943;
+            color: #69c7ff;
+            padding: 3px 7px;
+            border-radius: 5px;
+            font-family: "Courier New", monospace;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: #081827;
+            border: 1px solid #174b73;
+            overflow: hidden;
+        }
+
+        th {
+            background: #0c3457;
+            color: #ffffff;
+            text-align: left;
+            padding: 15px;
+            border-bottom: 1px solid #226a9d;
+        }
+
+        td {
+            padding: 14px 15px;
+            color: #c8d7e7;
+            border-bottom: 1px solid #153b59;
+        }
+
+        tr:hover {
+            background: #0c2238;
+        }
+
+        .method {
+            font-weight: bold;
+            color: #61c4ff;
+        }
+
+        .endpoint {
+            color: #8bd8ff;
+            font-family: "Courier New", monospace;
+        }
+
+        .architecture {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin: 25px 0;
+        }
+
+        .architecture-card {
+            background: #081827;
+            border: 1px solid #16496e;
+            border-radius: 12px;
+            padding: 22px;
+            text-align: center;
+        }
+
+        .architecture-card h3 {
+            margin-top: 5px;
+        }
+
+        .architecture-card p {
+            font-size: 14px;
+        }
+
+        .number {
+            width: 38px;
+            height: 38px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #0d4772;
+            border: 1px solid #2a8bc2;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        footer {
+            margin-top: 70px;
+            padding-top: 25px;
+            border-top: 1px solid #16496e;
+            text-align: center;
+            color: #718ba5;
+            font-size: 14px;
+        }
+
+        @media (max-width: 800px) {
+            .container {
+                width: 94%;
+                padding-top: 20px;
+            }
+
+            .hero {
+                padding: 35px 25px;
+            }
+
+            .hero h1 {
+                font-size: 30px;
+            }
+
+            .architecture {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .hero h1 {
+                font-size: 26px;
+            }
+
+            h2 {
+                font-size: 23px;
+            }
+
+            h3 {
+                font-size: 19px;
+            }
+
+            pre {
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<header>
-  <div class="hero">
-    <span class="badge">Security Operations Documentation</span>
-    <h1>Autoencoder HIDS Sentinel Console</h1>
-    <p>This guide explains how to install, start, and use the Autoencoder HIDS Sentinel Console.
-It is written as a practical guide for someone who wants to run the project without
-having to read the internal implementation first.</p>
-  </div>
-</header>
-<main>
-
-<nav aria-label="Documentation navigation">
-  <strong>Documentation</strong>
-  <a href="#quick-start">Quick Start</a>
-  <a href="#running-locally">Local Setup</a>
-  <a href="#docker">Docker</a>
-  <a href="#configuration">Configuration</a>
-  <a href="#dashboard">Dashboard</a>
-  <a href="#endpoints">Endpoints</a>
-  <a href="#troubleshooting">Troubleshooting</a>
-</nav>
-
-
-<h2>What the system does</h2>
-
-<p>
-The system monitors network traffic on a selected network interface. It collects traffic
-information, extracts behavioral features from network flows, and uses the trained
-autoencoder model to identify activity that differs from normal traffic.
-</p>
-
-<p>
-When the system identifies an unusual flow, the event can be stored in the SQLite
-database and displayed in the Sentinel Console. The dashboard also provides alert
-history, forensic information, model information, analyst feedback, and report
-generation.
-</p>
-
-<h2 id="quick-start">Quick start</h2>
-
-<p>
-The quickest way to start the project is with Docker. Before starting, make sure the
-trained model files are available.
-</p>
-
-<h3>Requirements</h3>
-
-<ul>
-<li>Ubuntu 22.04 or a newer Ubuntu release is recommended.</li>
-<li>Docker 20.10 or newer.</li>
-<li>Docker Compose version 2.</li>
-<li>An X11 display when using the graphical dashboard through Docker.</li>
-<li>The trained autoencoder model file.</li>
-<li>The trained scaler file.</li>
-</ul>
-
-<h3>Required model files</h3>
-
-<p>The project expects the following files in the model directory.</p>
-
-<pre>
-models&#47;baseline&#95;ae.keras
-models&#47;scaler.pkl
-</pre>
-
-<h3>Start with Docker</h3>
-
-<p>
-From the project directory, make the Docker launch script executable and start the
-system.
-</p>
-
-<pre>
-chmod +x docker&#47;run.sh
-.&#47;docker&#47;run.sh
-</pre>
-
-<p>
-The launch process prepares the Docker environment, checks the model files, prepares
-the required configuration, allows the graphical dashboard to access the local display,
-and starts the system.
-</p>
-
-<h2 id="running-locally">Running locally</h2>
-
-<p>
-Local execution is useful when developing or testing the project directly on Ubuntu.
-The original project uses Python 3.12 for its local environment.
-</p>
-
-<h3>Step 1: Create the environment</h3>
-
-<pre>
-python3.12 &#32;&#45;m venv env
-</pre>
-
-<h3>Step 2: Activate the environment</h3>
-
-<pre>
-source env&#47;bin&#47;activate
-</pre>
-
-<h3>Step 3: Install the project requirements</h3>
-
-<pre>
-pip install &#45;r requirements.txt
-</pre>
-
-<h3>Step 4: Make sure the model files exist</h3>
-
-<pre>
-models&#47;baseline&#95;ae.keras
-models&#47;scaler.pkl
-</pre>
-
-<p>
-After the environment and model files are ready, start the backend and dashboard
-using the project's normal local startup commands.
-</p>
-
-<p>
-The exact local startup command can depend on the project files currently present in
-your working copy. The original documentation confirms the dashboard entry point as
-the dashboard application and the backend as the FastAPI service.
-</p>
-
-<h2>Running with Docker</h2>
-
-<p>
-Docker provides the recommended way to run the complete application. The project
-contains a backend service and a graphical dashboard service.
-</p>
-
-<h3>Normal graphical operation</h3>
-
-<pre>
-docker compose --env-file docker&#47;.env --profile gui up --build
-</pre>
-
-<p>
-The graphical mode starts the backend and dashboard together.
-</p>
-
-<h3>Backend only</h3>
-
-<pre>
-docker compose --env-file docker&#47;.env --profile backend up --build
-</pre>
-
-<p>
-Backend only mode is useful when you only need the API or when the machine does not
-have a graphical desktop available.
-</p>
-
-<h3>Development mode</h3>
-
-<pre>
-docker compose --env-file docker&#47;.env --profile dev up --build
-</pre>
-
-<p>
-Development mode uses live project mounts so changes can be tested without rebuilding
-everything after every source change.
-</p>
-
-<h2>Docker display requirement</h2>
-
-<p>
-The graphical dashboard uses the host display. On a normal Ubuntu desktop the display
-is normally available through X11. The dashboard container therefore needs access to
-the local display socket.
-</p>
-
-<pre>
-xhost +local:docker
-</pre>
-
-<p>
-The Docker launch process described by the original project documentation handles this
-as part of its normal startup procedure.
-</p>
-
-<h2 id="configuration">Configuration</h2>
-
-<p>
-The backend uses configuration values for the database, trained model, scaler,
-detection threshold, API port, and logging level.
-</p>
-
-<table>
-<thead>
-<tr>
-<th>Setting</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>DATABASE&#95;URL</td>
-<td>Location of the SQLite database used by the system.</td>
-</tr>
-<tr>
-<td>HIDS&#95;MODEL&#95;PATH</td>
-<td>Location of the trained autoencoder model.</td>
-</tr>
-<tr>
-<td>HIDS&#95;SCALER&#95;PATH</td>
-<td>Location of the fitted feature scaler.</td>
-</tr>
-<tr>
-<td>HIDS&#95;THRESHOLD&#95;CONFIG</td>
-<td>Location of the detection threshold configuration.</td>
-</tr>
-<tr>
-<td>API&#95;PORT</td>
-<td>Port used by the backend API. The documented default is 9000.</td>
-</tr>
-<tr>
-<td>LOG&#95;LEVEL</td>
-<td>Controls the backend logging level.</td>
-</tr>
-<tr>
-<td>HOST&#95;SITE&#95;PACKAGES</td>
-<td>Location of the local environment packages when the Docker setup uses the host environment.</td>
-</tr>
-<tr>
-<td>HIDS&#95;API&#95;URL</td>
-<td>Backend address used by the dashboard.</td>
-</tr>
-<tr>
-<td>GUI&#95;THEME</td>
-<td>Dashboard theme. The documented default is dark.</td>
-</tr>
-<tr>
-<td>DISPLAY</td>
-<td>Display used by the graphical dashboard.</td>
-</tr>
-<tr>
-<td>QT&#95;QPA&#95;PLATFORM</td>
-<td>Qt display platform. The documented X11 value is xcb.</td>
-</tr>
-</tbody>
-</table>
-
-<h2>Dashboard</h2>
-
-<p>
-The dashboard is the main place where an analyst can observe the system and inspect
-detected activity.
-</p>
-
-<h3>Console Grid</h3>
-
-<p>
-The main console shows current alerts and previous alert information. It also provides
-summary information such as the number of alerts, threat rate, and the latest event.
-A live signal chart displays reconstruction error over time.
-</p>
-
-<h3>Packet Ingestion</h3>
-
-<p>
-This page allows the analyst to select a network interface and observe system
-telemetry. It also displays the network feature information collected from traffic.
-</p>
-
-<h3>Model Analysis</h3>
-
-<p>
-This page displays model information including accuracy information, false positive
-information, and the current detection threshold. It also provides the retraining
-function described by the original project.
-</p>
-
-<h3>Alert History</h3>
-
-<p>
-The alert history page allows the analyst to inspect stored alerts. An alert can be
-opened to view its feature information, reconstruction error, destination address,
-protocol information, and analyst feedback.
-</p>
-
-<h3>Forensic Reports</h3>
-
-<p>
-The reports page provides summary information about recorded events and can generate
-a structured text report containing incident information and anomalous flows.
-</p>
-
-<h3>Settings</h3>
-
-<p>
-The settings page provides controls for the dashboard theme, network interface,
-detection threshold, and feature reference information.
-</p>
-
-<h2>Network detection information</h2>
-
-<p>
-The system extracts 22 behavioral values from TCP and UDP network flows. These values
-are used by the trained model when calculating the anomaly score.
-</p>
-
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr><td>flow&#95;duration</td><td>Total duration of the network flow.</td></tr>
-<tr><td>fwd&#95;iat&#95;mean</td><td>Average forward packet arrival interval.</td></tr>
-<tr><td>fwd&#95;iat&#95;std</td><td>Variation in forward packet arrival intervals.</td></tr>
-<tr><td>fwd&#95;iat&#95;min</td><td>Shortest forward packet arrival interval.</td></tr>
-<tr><td>fwd&#95;iat&#95;max</td><td>Longest forward packet arrival interval.</td></tr>
-<tr><td>fwd&#95;iat&#95;total</td><td>Total forward packet arrival interval.</td></tr>
-<tr><td>fwd&#95;pkt&#95;len&#95;mean</td><td>Average forward packet length.</td></tr>
-<tr><td>fwd&#95;pkt&#95;len&#95;std</td><td>Variation in forward packet length.</td></tr>
-<tr><td>fwd&#95;pkt&#95;len&#95;min</td><td>Smallest packet length in the flow.</td></tr>
-<tr><td>fwd&#95;pkt&#95;len&#95;max</td><td>Largest packet length in the flow.</td></tr>
-<tr><td>total&#95;fwd&#95;bytes</td><td>Total forward traffic bytes.</td></tr>
-<tr><td>flow&#95;pkts&#95;per&#95;sec</td><td>Packets transferred per second.</td></tr>
-<tr><td>flow&#95;bytes&#95;per&#95;sec</td><td>Bytes transferred per second.</td></tr>
-<tr><td>pkt&#95;len&#95;variance</td><td>Variation in packet lengths.</td></tr>
-<tr><td>burst&#95;ratio</td><td>Amount of time associated with burst traffic.</td></tr>
-<tr><td>active&#95;time&#95;ratio</td><td>Amount of the flow duration containing active traffic.</td></tr>
-<tr><td>pkt&#95;count</td><td>Total number of packets.</td></tr>
-<tr><td>unique&#95;ttl&#95;count</td><td>Number of different TTL values observed.</td></tr>
-<tr><td>ttl&#95;mean</td><td>Average TTL value.</td></tr>
-<tr><td>tcp&#95;flag&#95;ratio</td><td>Ratio of TCP control flag packets.</td></tr>
-<tr><td>has&#95;udp</td><td>Indicates whether UDP traffic is present.</td></tr>
-<tr><td>has&#95;tcp</td><td>Indicates whether TCP traffic is present.</td></tr>
-</tbody>
-</table>
-
-<h2 id="endpoints">API endpoints</h2>
-
-<p>
-The backend API is documented on port 9000. These are the endpoints listed in the
-original project documentation.
-</p>
-
-<table>
-<thead>
-<tr>
-<th>Method</th>
-<th>Endpoint</th>
-<th>Purpose</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>GET</td>
-<td>&#47;ready</td>
-<td>Checks whether the model is loaded and the database is accessible.</td>
-</tr>
-<tr>
-<td>POST</td>
-<td>&#47;capture&#47;start</td>
-<td>Starts packet capture on the selected interface.</td>
-</tr>
-<tr>
-<td>POST</td>
-<td>&#47;capture&#47;stop</td>
-<td>Stops packet capture and flushes the current flow buffer.</td>
-</tr>
-<tr>
-<td>GET</td>
-<td>&#47;alerts</td>
-<td>Returns stored alerts from the database.</td>
-</tr>
-<tr>
-<td>POST</td>
-<td>&#47;system&#47;retrain</td>
-<td>Starts retraining using analyst flagged false positives.</td>
-</tr>
-<tr>
-<td>GET</td>
-<td>&#47;system&#47;threshold</td>
-<td>Returns the current detection threshold.</td>
-</tr>
-</tbody>
-</table>
-
-<h3>Checking the backend</h3>
-
-<p>
-When the backend is running, the readiness endpoint can be checked from a browser or
-a suitable HTTP client.
-</p>
-
-<pre>
-http:&#47;&#47;127.0.0.1:9000&#47;ready
-</pre>
-
-<p>
-A successful readiness response indicates that the backend has loaded the required
-model and can access the database.
-</p>
-
-<h2 id="troubleshooting">Common startup problems</h2>
-
-<h3>Model files are missing</h3>
-
-<p>
-Make sure the trained autoencoder and scaler files are present before starting the
-system.
-</p>
-
-<h3>Dashboard does not open in Docker</h3>
-
-<p>
-Check that Ubuntu has an active graphical session and that Docker has permission to
-access the display. The X11 display setting should also point to the active display.
-</p>
-
-<h3>Backend is not ready</h3>
-
-<p>
-Check the Docker logs and wait for the backend health check to complete. The dashboard
-depends on the backend being ready before normal operation can begin.
-</p>
-
-<h3>Network capture does not work</h3>
-
-<p>
-The capture service requires the permissions needed for raw network packet access.
-The Docker setup in the original project gives the backend the required network
-capabilities.
-</p>
-
-<h2>Basic operating procedure</h2>
-
-<ol>
-<li>Start the backend and dashboard.</li>
-<li>Open the Sentinel Console.</li>
-<li>Select the network interface you want to monitor.</li>
-<li>Start packet capture.</li>
-<li>Observe incoming alerts on the console.</li>
-<li>Open suspicious events from the alert history.</li>
-<li>Review the feature values and anomaly score.</li>
-<li>Record analyst feedback when an alert is a false positive.</li>
-<li>Generate a forensic report when an investigation is complete.</li>
-</ol>
-
-<h2>Project technology</h2>
-
-<ul>
-<li>Python 3.12</li>
-<li>PySide6 and Qt6</li>
-<li>FastAPI</li>
-<li>SQLite</li>
-<li>Keras and TensorFlow</li>
-<li>Scapy</li>
-<li>psutil</li>
-<li>Docker Compose</li>
-</ul>
-
-<p>
-This document is intended as the practical starting point for running and using the
-Autoencoder HIDS Sentinel Console.
-</p>
-
-</main>
-<footer>Autoencoder HIDS Sentinel Console Documentation</footer>
-</body>
-</html>
+
+<div class="container">
+
+    <header class="hero">
+
+        <h1>Autoencoder HIDS Sentinel Console</h1>
+
+        <p>
+            Practical documentation for installing, deploying,
+            monitoring, and operating the Autoencoder based
+            Host Intrusion Detection System.
+        </p>
+
+        <div class="badge-container">
+            <span class="badge">HIDS</span>
+            <span class="badge">Autoencoder</span>
+            <span class="badge">Network Monitoring</span>
+            <span class="badge">Threat Detection</span>
+            <span class="badge">SOC</span>
+        </div>
+
+    </header>
+
+
+    <nav class="navigation">
+
+        <h3>Documentation Contents</h3>
+
+        <ul>
+            <li>
+                <a href="#system">
+                    What the system does
+                </a>
+            </li>
+
+            <li>
+                <a href="#quick-start">
+                    Quick start
+                </a>
+            </li>
+
+            <li>
+                <a href="#repository">
+                    Repository cloning
+                </a>
+            </li>
+
+            <li>
+                <a href="#docker">
+                    Docker setup
+                </a>
+            </li>
+
+            <li>
+                <a href="#local">
+                    Local setup
+                </a>
+            </li>
+
+            <li>
+                <a href="#dashboard">
+                    Dashboard components
+                </a>
+            </li>
+
+            <li>
+                <a href="#endpoints">
+                    Backend endpoints
+                </a>
+            </li>
+
+            <li>
+                <a href="#verification">
+                    Backend verification
+                </a>
+            </li>
+        </ul>
+
+    </nav>
+
+
+    <section id="system">
+
+        <h2>What the system does</h2>
+
+        <p>
+            The system monitors network traffic on a selected
+            network interface. It collects traffic information,
+            extracts behavioral features from network flows, and
+            uses a trained autoencoder model to identify activity
+            that differs from normal traffic.
+        </p>
+
+        <p>
+            When the system identifies an unusual flow, the event
+            is stored in the SQLite database and displayed in the
+            Sentinel Console. The dashboard provides alert history,
+            forensic information, model information, analyst
+            feedback, and report generation.
+        </p>
+
+        <div class="architecture">
+
+            <div class="architecture-card">
+                <div class="number">1</div>
+                <h3>Network Traffic</h3>
+                <p>
+                    Traffic is collected from the selected
+                    network interface.
+                </p>
+            </div>
+
+            <div class="architecture-card">
+                <div class="number">2</div>
+                <h3>Autoencoder</h3>
+                <p>
+                    Network behavior is analyzed using the
+                    trained detection model.
+                </p>
+            </div>
+
+            <div class="architecture-card">
+                <div class="number">3</div>
+                <h3>Sentinel Console</h3>
+                <p>
+                    Alerts and investigation information are
+                    presented to the analyst.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section id="quick-start">
+
+        <h2>Quick Start</h2>
+
+        <p>
+            The quickest way to start the project is by obtaining
+            the repository files and using Docker. Before starting,
+            ensure that the trained model files are available in
+            the appropriate project directory.
+        </p>
+
+        <h3>Requirements</h3>
+
+        <ul>
+            <li>Ubuntu 22.04 or a newer Ubuntu release</li>
+            <li>Docker 20.10 or newer</li>
+            <li>Docker Compose version 2</li>
+            <li>An X11 display when using the graphical dashboard through Docker</li>
+            <li>The trained autoencoder model file</li>
+            <li>The trained scaler file</li>
+            <li>Git for obtaining the project repository</li>
+        </ul>
+
+    </section>
+
+
+    <section id="repository">
+
+        <h2>Repository Cloning</h2>
+
+        <p>
+            Clone the project repository and move into the project
+            directory.
+        </p>
+
+        <pre>git clone https://github.com/mivulenelson/autoencoder-based-HIDS.git
+cd autoencoder-based-HIDS</pre>
+
+        <div class="info">
+
+            <p>
+                Make sure you are inside the project directory before
+                executing the Docker commands described below.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section id="docker">
+
+        <h2>Docker Setup</h2>
+
+        <p>
+            Docker provides the recommended way to run the complete
+            application. The project can be started using different
+            Docker Compose profiles depending on whether you need
+            the graphical console, backend service, or development
+            environment.
+        </p>
+
+
+        <h3>Check Docker Installation</h3>
+
+        <p>
+            Verify that Docker and Docker Compose are available on
+            your Ubuntu system.
+        </p>
+
+        <pre>docker --version
+docker compose version</pre>
+
+
+        <h3>GUI Mode</h3>
+
+        <p>
+            Start the graphical Sentinel Console together with the
+            services defined under the GUI profile.
+        </p>
+
+        <pre>docker compose --env-file docker.env --profile gui up --build</pre>
+
+
+        <h3>Backend Only</h3>
+
+        <p>
+            Start the backend without the graphical dashboard.
+        </p>
+
+        <pre>docker compose --env-file docker.env --profile backend up --build</pre>
+
+
+        <h3>Development Mode</h3>
+
+        <p>
+            Start the development environment using the development
+            profile.
+        </p>
+
+        <pre>docker compose --env-file docker.env --profile dev up --build</pre>
+
+
+        <h3>Run in the Background</h3>
+
+        <p>
+            Add the detached option when you want the containers to
+            continue running after the terminal is closed.
+        </p>
+
+        <pre>docker compose --env-file docker.env --profile gui up --build -d</pre>
+
+
+        <h3>View Running Containers</h3>
+
+        <pre>docker compose ps</pre>
+
+
+        <h3>View Application Logs</h3>
+
+        <pre>docker compose logs -f</pre>
+
+
+        <h3>Stop the Application</h3>
+
+        <p>
+            Stop the running Docker Compose services with:
+        </p>
+
+        <pre>docker compose down</pre>
+
+
+        <h3>Rebuild Without Cache</h3>
+
+        <p>
+            If changes to the Docker configuration or application
+            dependencies require a clean rebuild, use:
+        </p>
+
+        <pre>docker compose --env-file docker.env --profile gui build --no-cache</pre>
+
+
+        <div class="warning">
+
+            <p>
+                The commands above assume that the project contains
+                a Docker Compose configuration with the profiles
+                named gui, backend, and dev, and that the environment
+                file is named docker.env. If the project uses different
+                profile names or an alternative environment file,
+                adjust the commands to match the project configuration.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section id="local">
+
+        <h2>Local Setup</h2>
+
+        <p>
+            Local execution is useful when developing or testing
+            the project directly on Ubuntu without running the
+            complete application through Docker.
+        </p>
+
+
+        <h3>Create the Virtual Environment</h3>
+
+        <pre>python3 -m venv env</pre>
+
+
+        <h3>Activate the Environment</h3>
+
+        <pre>source env/bin/activate</pre>
+
+
+        <h3>Install Project Requirements</h3>
+
+        <pre>pip install -r requirements.txt</pre>
+
+
+        <h3>Verify the Environment</h3>
+
+        <pre>python --version
+pip --version</pre>
+
+
+        <h3>Model Files</h3>
+
+        <p>
+            Ensure that the trained autoencoder model and scaler
+            files exist in the location expected by the application
+            before starting the backend.
+        </p>
+
+        <div class="info">
+
+            <p>
+                The exact local startup command depends on the
+                application's Python entry point and project layout.
+                Use the project's application entry point when
+                starting the backend and dashboard locally.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section id="dashboard">
+
+        <h2>Dashboard Components</h2>
+
+        <div class="card">
+
+            <h3>Console Grid</h3>
+
+            <p>
+                Shows current alerts, previous alert information,
+                summary metrics, threat rates, and a live signal
+                chart displaying reconstruction error over time.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Packet Ingestion</h3>
+
+            <p>
+                Allows the analyst to select a network interface
+                and observe system telemetry alongside collected
+                network feature information.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Model Analysis</h3>
+
+            <p>
+                Displays model accuracy information, false positive
+                information, current detection thresholds, and the
+                retraining function.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Alert History</h3>
+
+            <p>
+                Allows the analyst to inspect stored alerts, feature
+                values, reconstruction errors, destination
+                addresses, and record analyst feedback.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Forensic Reports</h3>
+
+            <p>
+                Provides summary information about recorded events
+                and generates structured text reports containing
+                incident information.
+            </p>
+
+        </div>
+
+
+        <div class="card">
+
+            <h3>Settings</h3>
+
+            <p>
+                Provides controls for the dashboard theme, network
+                interface selection, and feature reference
+                information.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section id="endpoints">
+
+        <h2>Backend Endpoints</h2>
+
+        <p>
+            The backend API runs on port 9000. The following
+            endpoints provide access to the main system functions.
+        </p>
+
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Method</th>
+                    <th>Endpoint</th>
+                    <th>Purpose</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td class="method">GET</td>
+
+                    <td class="endpoint">
+                        /ready
+                    </td>
+
+                    <td>
+                        Checks whether the model is loaded and
+                        the database is accessible.
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td class="method">POST</td>
+
+                    <td class="endpoint">
+                        /capture/start
+                    </td>
+
+                    <td>
+                        Starts packet capture on the selected
+                        interface.
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td class="method">POST</td>
+
+                    <td class="endpoint">
+                        /capture/stop
+                    </td>
+
+                    <td>
+                        Stops packet capture and flushes the
+                        current flow buffer.
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td class="method">GET</td>
+
+                    <td class="endpoint">
+                        /alerts
+                    </td>
+
+                    <td>
+                        Returns stored alerts from the database.
+                    </td>
+                </tr>
+
+
+                <tr>
+                    <td class="method">POST</td>
+
+                    <td class="endpoint">
+                        /system/retrain
+                    </td>
+
+                    <td>
+                        Starts retraining using analyst flagged
+                        false positives.
+                    </td>
+                </tr>
+
+
+                <tr>
+                   
