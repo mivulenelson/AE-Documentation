@@ -541,6 +541,72 @@
     footer { flex-direction: column; gap: 6px; text-align: center; }
   }
   @media print { .topbar, .sidebar { display: none; } body { background: #fff; color: #000; } }
+
+  /* ── Layout improvements: fill the full width, add right-hand rail ── */
+  .layout { max-width: 2000px; margin: 0 auto; }
+  .main { max-width: none; padding: 48px clamp(24px, 3.5vw, 64px) 80px; }
+  .main p, .main li { max-width: none; }
+
+  /* Right rail: "On this page" + at-a-glance facts */
+  .toc {
+    width: 260px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 52px;
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+    padding: 32px 22px 32px 8px;
+    border-left: 1px solid var(--border);
+    background: var(--bg-panel);
+    padding-left: 22px;
+  }
+  .toc-label {
+    display: block;
+    font-size: 14px; font-weight: 700; letter-spacing: 1.4px;
+    color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px;
+  }
+  .toc-list { list-style: none; margin: 0 0 28px; padding: 0; }
+  .toc-list a {
+    display: block; text-decoration: none; color: var(--text-sec);
+    font-size: 15px; line-height: 1.4; padding: 5px 0 5px 12px;
+    border-left: 2px solid var(--border);
+    transition: color .15s, border-color .15s;
+  }
+  .toc-list a.sub { padding-left: 26px; font-size: 14px; }
+  .toc-list a:hover, .toc-list a.active { color: var(--cyan); border-left-color: var(--cyan); }
+  .glance { display: grid; gap: 10px; }
+  .glance div {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px;
+  }
+  .glance b {
+    display: block; font-family: var(--font-mono); font-size: 22px;
+    color: var(--cyan); line-height: 1.2;
+  }
+  .glance span { font-size: 13px; color: var(--text-sec); }
+  .glance .g b { color: var(--green); }
+  .glance .v b { color: var(--violet); }
+  .glance .a b { color: var(--amber); }
+
+  /* Use the extra width: denser grids on wide screens */
+  .cards, .pages-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .volume-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .hero { padding: 44px clamp(24px, 3vw, 56px); }
+  .hero-desc { max-width: 780px; font-size: 17px; }
+  .hero h1 { font-size: clamp(28px, 3vw, 40px); }
+  table { width: 100%; }
+
+  /* Readability: lift the tiny text sizes */
+  .card-body, .page-card-desc, .step-body, .callout-text, .profile-val { font-size: 15px; }
+  .card-title, .page-card-title { font-size: 17px; }
+  .vol-desc { font-size: 14px; }
+  .arch-diagram { font-size: 14px; }
+  .hero-eyebrow { font-size: 13px; }
+  .chip { font-size: 13px; }
+  th { font-size: 12px; }
+  td { font-size: 14px; }
+
+  @media (max-width: 1280px) { .toc { display: none; } }
 </style>
 </head>
 <body>
@@ -1156,6 +1222,20 @@ pip install -r requirements.txt</span></pre>
     </section>
 
   </main>
+
+  <!-- ── RIGHT RAIL ── -->
+  <aside class="toc" aria-label="On this page">
+    <span class="toc-label">On this page</span>
+    <ul class="toc-list" id="toc-list"></ul>
+    <span class="toc-label">At a glance</span>
+    <div class="glance">
+      <div><b>22</b><span>behavioral flow features</span></div>
+      <div class="v"><b>22→4→22</b><span>symmetric autoencoder</span></div>
+      <div class="g"><b>0.142 ms</b><span>avg inference latency per flow</span></div>
+      <div class="a"><b>0.00%</b><span>false positives on 6,000 benign vectors</span></div>
+    </div>
+  </aside>
+
 </div>
 
 <!-- FOOTER -->
@@ -1166,27 +1246,38 @@ pip install -r requirements.txt</span></pre>
 </footer>
 
 <script>
-  const links = document.querySelectorAll('.sidebar-link');
-  const sections = document.querySelectorAll('section[id], .hero');
+  const sideLinks = document.querySelectorAll('.sidebar-link');
+
+  // Build the right-hand "On this page" list from the headings
+  const tocList = document.getElementById('toc-list');
+  const heads = document.querySelectorAll('.main section[id] > h2, .main h3[id]');
+  heads.forEach(h => {
+    const id = h.id || h.closest('section').id;
+    const a = document.createElement('a');
+    a.href = '#' + id;
+    a.textContent = h.textContent.trim();
+    a.dataset.target = id;
+    if (h.tagName === 'H3') a.className = 'sub';
+    const li = document.createElement('li');
+    li.appendChild(a);
+    tocList.appendChild(li);
+  });
+  const tocLinks = tocList.querySelectorAll('a');
+
+  function setActive(id) {
+    sideLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+    tocLinks.forEach(l => l.classList.toggle('active', l.dataset.target === id));
+  }
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        links.forEach(l => l.classList.remove('active'));
-        const id = entry.target.id || 'overview';
-        const active = document.querySelector(`.sidebar-link[href="#${id}"]`);
-        if (active) active.classList.add('active');
-      }
+      if (entry.isIntersecting) setActive(entry.target.id || 'overview');
     });
-  }, { rootMargin: '-20% 0px -70% 0px' });
+  }, { rootMargin: '-15% 0px -75% 0px' });
 
-  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+  document.querySelectorAll('.main section[id], .main h3[id]').forEach(el => observer.observe(el));
 
-  // Highlight "Overview" on first load when no hash is present
-  if (!location.hash) {
-    const first = document.querySelector('.sidebar-link[href="#overview"]');
-    if (first) first.classList.add('active');
-  }
+  if (!location.hash) setActive('overview');
 </script>
 </body>
 </html>
