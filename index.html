@@ -600,7 +600,7 @@
   .card-body, .page-card-desc, .step-body, .callout-text, .profile-val { font-size: 15px; }
   .card-title, .page-card-title { font-size: 17px; }
   .vol-desc { font-size: 14px; }
-  .arch-diagram { font-size: 14px; }
+  .arch-diagram { font-size: 14px; white-space: pre; line-height: 1.7; }
   .hero-eyebrow { font-size: 13px; }
   .chip { font-size: 13px; }
   th { font-size: 12px; }
@@ -742,27 +742,93 @@
       <h2>Architecture</h2>
       <p>
         The system follows a two-container architecture sharing data over Docker named volumes.
-        The backend runs with <code>NET_RAW</code> and <code>NET_ADMIN</code> capabilities for raw
-        socket access; the dashboard mounts the host X11 socket for GUI rendering.
+        The backend (<code>api/</code> plus <code>src/</code>) runs with <code>NET_RAW</code> and
+        <code>NET_ADMIN</code> capabilities for raw socket access; the dashboard (<code>app/</code>)
+        mounts the host X11 socket for GUI rendering. The tree below is the full project layout.
       </p>
 
-      <div class="arch-diagram">
-<span class="d">┌─ Host Machine ─────────────────────────────────────────────────────────┐</span>
-<span class="d">│</span>                                                                        <span class="d">│</span>
-<span class="d">│</span>  <span class="c">┌─── hids_backend (port 9000) ──────────┐</span>  <span class="v">┌─── hids_dashboard ───────┐</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">│</span>  FastAPI · Uvicorn · 1 worker        <span class="c">│</span>  <span class="v">│</span>  PySide6 · Qt6 · XCB    <span class="v">│</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">│</span>  ├─ src/services/monitor_service.py  <span class="c">│</span>  <span class="v">│</span>  ├─ dashboard.py         <span class="v">│</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">│</span>  │    Scapy capture → feature ext.  <span class="c">│</span>  <span class="v">│</span>  ├─ pages/               <span class="v">│</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">│</span>  ├─ src/ml/autoencoder.py           <span class="c">│</span>  <span class="v">│</span>  └─ components/          <span class="v">│</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">│</span>  │    Keras inference + thresholding <span class="c">│</span>  <span class="v">│</span>                         <span class="v">│</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">│</span>  ├─ api/ (FastAPI routes)           <span class="c">│</span>  <span class="v">│</span>  HTTP → localhost:9000   <span class="v">│</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">│</span>  └─ src/database/ (SQLite CRUD)     <span class="c">│</span>  <span class="v">│</span>  Qt signals → UI update  <span class="v">│</span>  <span class="d">│</span>
-<span class="d">│</span>  <span class="c">└──────────────────────────────────────┘</span>  <span class="v">└──────────────────────────┘</span>  <span class="d">│</span>
-<span class="d">│</span>              <span class="d">│ hids_models   │ hids_db   │ hids_configs  │ /tmp/.X11-unix</span>  <span class="d">│</span>
-<span class="d">│</span>              <span class="d">└───────────────┴───────────┴───────────────┘</span>                  <span class="d">│</span>
-<span class="d">│</span>              <span class="g">  baseline_ae.keras  hids_forensics.db  threshold.yaml</span>         <span class="d">│</span>
-<span class="d">└────────────────────────────────────────────────────────────────────────────┘</span>
-      </div>
+      <div class="arch-diagram"><span class="c">AUTOENCODER_HIDS/</span>
+<span class="d">├── </span><span class="c">api/</span>                                      <span class="d"># FastAPI backend (port 9000)</span>
+<span class="d">│   ├── </span>routes/
+<span class="d">│   │   ├── </span>alerts.py                         <span class="d"># alert endpoints</span>
+<span class="d">│   │   └── </span>detection.py                      <span class="d"># detection endpoints</span>
+<span class="d">│   ├── </span>dependencies.py
+<span class="d">│   └── </span>main.py                               <span class="d"># app entry point</span>
+<span class="d">│</span>
+<span class="d">├── </span><span class="v">app/</span>                                      <span class="d"># PySide6 dashboard</span>
+<span class="d">│   ├── </span>components/
+<span class="d">│   │   ├── </span>charts.py
+<span class="d">│   │   └── </span>metrics.py
+<span class="d">│   ├── </span>pages/
+<span class="d">│   │   ├── </span>__init__.py
+<span class="d">│   │   ├── </span>alert_history.py                  <span class="d"># forensic inspector</span>
+<span class="d">│   │   ├── </span>analysis.py                       <span class="d"># model analysis</span>
+<span class="d">│   │   ├── </span>docs.py
+<span class="d">│   │   ├── </span>ingestion.py                      <span class="d"># packet ingestion</span>
+<span class="d">│   │   ├── </span>realtime_monitor.py               <span class="d"># console grid</span>
+<span class="d">│   │   ├── </span>reports.py                        <span class="d"># forensic reports</span>
+<span class="d">│   │   └── </span>settings.py
+<span class="d">│   └── </span>dashboard.py                          <span class="d"># dashboard entry point</span>
+<span class="d">│</span>
+<span class="d">├── </span><span class="a">configs/</span>
+<span class="d">│   └── </span><span class="g">threshold.yaml</span>                        <span class="d"># calibrated alert threshold</span>
+<span class="d">│</span>
+<span class="d">├── </span>data/
+<span class="d">│   ├── </span>processed_test_data.csv
+<span class="d">│   └── </span>temp_benign_features.csv
+<span class="d">│</span>
+<span class="d">├── </span>docker/
+<span class="d">│   ├── </span>.dockerignore
+<span class="d">│   ├── </span>docker-compose.yml
+<span class="d">│   ├── </span>Dockerfile.backend
+<span class="d">│   ├── </span>Dockerfile.dashboard
+<span class="d">│   ├── </span>entrypoint.sh
+<span class="d">│   ├── </span>run.sh                                <span class="d"># launcher script</span>
+<span class="d">│   ├── </span>requirements.backend.txt
+<span class="d">│   └── </span>requirements.dashboard.txt
+<span class="d">│</span>
+<span class="d">├── </span>experiments/                              <span class="d"># training and research</span>
+<span class="d">│   ├── </span>datasets/
+<span class="d">│   │   ├── </span>CIC-IDS2017/
+<span class="d">│   │   ├── </span>nonVPN/
+<span class="d">│   │   └── </span>VPN/
+<span class="d">│   ├── </span>figures/
+<span class="d">│   │   ├── </span>eda/
+<span class="d">│   │   └── </span>training/
+<span class="d">│   ├── </span>notebooks/
+<span class="d">│   │   ├── </span>eda.ipynb
+<span class="d">│   │   └── </span>training.ipynb
+<span class="d">│   └── </span>threshold_tuning.py                   <span class="d"># threshold calibration</span>
+<span class="d">│</span>
+<span class="d">├── </span><span class="g">models/</span>
+<span class="d">│   ├── </span><span class="g">baseline_ae.keras</span>                     <span class="d"># trained autoencoder</span>
+<span class="d">│   └── </span><span class="g">scaler.pkl</span>                            <span class="d"># fitted scaler</span>
+<span class="d">│</span>
+<span class="d">└── </span>src/                                      <span class="d"># core logic</span>
+<span class="d">    ├── </span>database/                             <span class="d"># SQLite forensics layer</span>
+<span class="d">    │   ├── </span>__init__.py
+<span class="d">    │   ├── </span>connection.py
+<span class="d">    │   ├── </span>crud.py
+<span class="d">    │   └── </span>models.py
+<span class="d">    ├── </span>detection/                            <span class="d"># autoencoder engine</span>
+<span class="d">    │   ├── </span>layers/
+<span class="d">    │   │   └── </span>dense_block.py
+<span class="d">    │   ├── </span>__init__.py
+<span class="d">    │   ├── </span>evaluator.py                      <span class="d"># reconstruction error, thresholding</span>
+<span class="d">    │   └── </span>models.py                         <span class="d"># autoencoder model</span>
+<span class="d">    ├── </span>ingestion/
+<span class="d">    │   ├── </span>__init__.py
+<span class="d">    │   ├── </span>parser.py                         <span class="d"># flow and feature extraction</span>
+<span class="d">    │   └── </span>sniffer.py                        <span class="d"># Scapy capture</span>
+<span class="d">    ├── </span>services/
+<span class="d">    │   ├── </span>__init__.py
+<span class="d">    │   ├── </span>feedback_loop.py                  <span class="d"># analyst feedback and fine tuning</span>
+<span class="d">    │   └── </span>monitor_Service.py
+<span class="d">    └── </span>tests/
+<span class="d">        ├── </span>test_api.py
+<span class="d">        ├── </span>test_hids_ui.py
+<span class="d">        ├── </span>test_hids.py
+<span class="d">        └── </span>test_master_hids.py</div>
 
       <h3 id="model">Autoencoder Model</h3>
       <p>
@@ -949,8 +1015,8 @@ Weights:      models/baseline_ae.keras  v1.0.4</pre>
 
       <h3 id="theme">Design system</h3>
       <p>
-        All visual constants live in <code>app/theme.py</code>. Colours, type sizes, and QSS
-        strings are defined once and imported across all pages and components.
+        Visual constants are defined once in the <code>app/</code> package and shared by every page in
+        <code>app/pages/</code> and every widget in <code>app/components/</code>: colours, type sizes, and QSS strings.
       </p>
 
       <table>
@@ -996,8 +1062,8 @@ Weights:      models/baseline_ae.keras  v1.0.4</pre>
       <h3>Dockerfile.backend</h3>
       <p>
         Installs <code>libpcap</code>, <code>libgomp1</code>, and <code>curl</code> (for the
-        healthcheck). Copies <code>api/</code>, <code>src/</code>, and <code>docker/entrypoint.py</code>.
-        Exposes port <code>9000</code>. Starts Uvicorn via <code>python -m entrypoint</code>.
+        healthcheck). Copies <code>api/</code>, <code>src/</code>, and <code>docker/entrypoint.sh</code>.
+        Exposes port <code>9000</code>. Starts Uvicorn through <code>entrypoint.sh</code>.
       </p>
       <pre><span class="com"># Healthcheck — backend is ready when /ready returns 200</span>
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
@@ -1046,7 +1112,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
         <div class="vol-card">
           <div class="vol-name">hids_configs</div>
           <div class="vol-path">/app/configs/</div>
-          <p class="vol-desc">threshold.yaml with calibrated τ value. Generated by docker/generate_threshold.py if absent.</p>
+          <p class="vol-desc">threshold.yaml with calibrated τ value. Tuned with experiments/threshold_tuning.py.</p>
         </div>
         <div class="vol-card">
           <div class="vol-name">hids_logs</div>
@@ -1093,7 +1159,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
       <h3 id="prerequisites">Prerequisites</h3>
       <div class="profile-row"><span class="profile-key">OS</span><span class="profile-val">Linux (Ubuntu 22.04+ recommended); X11 display for the dashboard</span></div>
       <div class="profile-row"><span class="profile-key">Docker</span><span class="profile-val">20.10+ with Compose v2 plugin</span></div>
-      <div class="profile-row"><span class="profile-key">Python</span><span class="profile-val">3.12 — for venv + generate_threshold.py</span></div>
+      <div class="profile-row"><span class="profile-key">Python</span><span class="profile-val">3.12 — for the venv and experiments/threshold_tuning.py</span></div>
       <div class="profile-row"><span class="profile-key">Model files</span><span class="profile-val">models/baseline_ae.keras and models/scaler.pkl must exist before first launch</span></div>
 
       <ul class="steps" style="margin-top:24px">
@@ -1103,7 +1169,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
             <div class="step-title">Create and activate the virtualenv</div>
             <pre><span class="cmd">python3.12 -m venv env
 source env/bin/activate
-pip install -r requirements.txt</span></pre>
+pip install -r docker/requirements.backend.txt -r docker/requirements.dashboard.txt</span></pre>
           </div>
         </li>
         <li>
